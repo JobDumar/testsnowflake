@@ -1,61 +1,57 @@
-name: Deploy to Snowflake with schemachange
+name: snowflake-devops-demo
 
 on:
   push:
     branches:
       - main
+    paths:
+      - 'migrations/**'
   workflow_dispatch:
 
 jobs:
-  deploy:
+  deploy-snowflake-changes-job:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v2
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
+      - name: Use Python 3.8.x
+        uses: actions/setup-python@v2.2.1
         with:
-          python-version: '3.9'
+          python-version: '3.8.x'
 
-      - name: Install dependencies
+      - name: Install schemachange
         run: |
-          pip install schemachange snowflake-connector-python
+          pip install schemachange
 
       - name: Create connections.toml
+        env:
+          SF_ACCOUNT: ${{ secrets.SF_ACCOUNT }}
+          SF_USERNAME: ${{ secrets.SF_USERNAME }}
+          SF_PASSWORD: ${{ secrets.SF_PASSWORD }}
+          SF_ROLE: ${{ secrets.SF_ROLE }}
+          SF_WAREHOUSE: ${{ secrets.SF_WAREHOUSE }}
+          SF_DATABASE: ${{ secrets.SF_DATABASE }}
+          SF_SCHEMA: ${{ secrets.SF_SCHEMA }}
         run: |
           echo "[connections.snowflake]" > connections.toml
-          echo "account = \"aia76005.east-us-2.azure\"" >> connections.toml
-          echo "user = \"DUMAR\"" >> connections.toml
-          echo "password = \"dfVTkMMXXskFH8w\"" >> connections.toml
-          echo "role = \"ACCOUNTADMIN\"" >> connections.toml
-          echo "warehouse = \"COMPUTE_WH\"" >> connections.toml
-          echo "database = \"SNOWFLAKE_SANDBOX_DB\"" >> connections.toml
-          echo "schema = \"PUBLIC\"" >> connections.toml
+          echo "account = \"$SF_ACCOUNT\"" >> connections.toml
+          echo "user = \"$SF_USERNAME\"" >> connections.toml
+          echo "password = \"$SF_PASSWORD\"" >> connections.toml
+          echo "role = \"$SF_ROLE\"" >> connections.toml
+          echo "warehouse = \"$SF_WAREHOUSE\"" >> connections.toml
+          echo "database = \"$SF_DATABASE\"" >> connections.toml
+          echo "schema = \"$SF_SCHEMA\"" >> connections.toml
           echo "=== connections.toml content ==="
           cat connections.toml
 
-      - name: Test Snowflake connection
-        run: |
-          python - <<'EOF'
-import snowflake.connector
-conn = snowflake.connector.connect(
-    user='DUMAR',
-    password='dfVTkMMXXskFH8w',
-    account='aia76005.east-us-2.azure',
-    warehouse='COMPUTE_WH',
-    database='SNOWFLAKE_SANDBOX_DB',
-    schema='PUBLIC'
-)
-print('✅ Conexión exitosa!')
-conn.close()
-EOF
-
-      - name: Check migrations folder
-        run: |
-          echo "=== Listing migrations folder ==="
-          ls -la migrations || echo "⚠️ 'migrations' folder not found"
-
       - name: Run schemachange
+        env:
+          SF_DATABASE: ${{ secrets.SF_DATABASE }}
+          SF_SCHEMA: ${{ secrets.SF_SCHEMA }}
         run: |
-          schemachange deploy --connections-file-path connections.toml -f migrations --create-change-history-table
+          echo "GITHUB_WORKSPACE: $GITHUB_WORKSPACE"
+          python --version
+          echo "Step 2: Running schemachange"
+          schemachange deploy --connections-file-path connections.toml -f $GITHUB_WORKSPACE/migrations -c $SF_DATABASE.$SF_SCHEMA.SCHEMACHANGE.CHANGE_HISTORY --create-change-history-table
