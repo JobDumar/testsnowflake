@@ -1,13 +1,10 @@
-- name: 🔹 Crear archivo connections.toml
-run: |
-cat <<EOT > connections.toml
-[connections.snowflake]
-account = "aia76005.east-us-2.azure"
-user = "DUMAR"
-password = "dfVTkMMXXskFH8w"
-role = "ACCOUNTADMIN"
-warehouse = "COMPUTE_WH"
-database = "SNOWFLAKE_SANDBOX_DB"
-schema = "PUBLIC"
-EOT
-cat connections.toml  # Verificar contenido
+      - name: 🔹 Crear archivo connections.toml
+        run: |
+          echo '[connections.snowflake]' > connections.toml
+          echo 'account = "${{ secrets.SNOWFLAKE_ACCOUNT }}"' >> connections.toml
+          echo 'user = "${{ secrets.SNOWFLAKE_USER }}"' >> connections.toml
+          echo 'password = "${{ secrets.SNOWFLAKE_PASSWORD }}"' >> connections.toml
+          echo 'role = "${{ secrets.SNOWFLAKE_ROLE }}"' >> connections.toml
+          echo 'warehouse = "${{ secrets.SNOWFLAKE_WAREHOUSE }}"' >> connections.toml
+          echo 'database = "${{ secrets.SNOWFLAKE_DATABASE }}"' >> connections.toml
+          echo 'schema = "${{ secrets.SNOWFLAKE_SCHEMA }}"' >> connections.toml
