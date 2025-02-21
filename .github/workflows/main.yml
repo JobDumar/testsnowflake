@@ -11,31 +11,39 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: 🔹 Checkout del código
+      # 1. Descarga el código del repo
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: 🔹 Configurar Python
+      # 2. Configura Python 3.9
+      - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.9'
 
-      - name: 🔹 Instalar dependencias
+      # 3. Instala schemachange y el conector de Snowflake
+      - name: Install dependencies
         run: |
           pip install schemachange snowflake-connector-python
 
-      - name: 🔹 Crear archivo connections.toml
+      # 4. Crea el archivo connections.toml con credenciales en texto plano
+      - name: Create connections.toml
         run: |
-          echo '[connections.snowflake]' > connections.toml
-          echo 'account = "aia76005.east-us-2.azure"' >> connections.toml
-          echo 'user = "DUMAR"' >> connections.toml
-          echo 'password = "dfVTkMMXXskFH8w"' >> connections.toml
-          echo 'role = "ACCOUNTADMIN"' >> connections.toml
-          echo 'warehouse = "COMPUTE_WH"' >> connections.toml
-          echo 'database = "SNOWFLAKE_SANDBOX_DB"' >> connections.toml
-          echo 'schema = "PUBLIC"' >> connections.toml
-          cat connections.toml  # Verificar contenido
+          cat <<EOF > connections.toml
+[connections.snowflake]
+account = "aia76005.east-us-2.azure"
+user = "DUMAR"
+password = "dfVTkMMXXskFH8w"
+role = "ACCOUNTADMIN"
+warehouse = "COMPUTE_WH"
+database = "SNOWFLAKE_SANDBOX_DB"
+schema = "PUBLIC"
+EOF
+          echo "=== connections.toml content ==="
+          cat connections.toml
 
-      - name: 🔹 Probar conexión con Snowflake
+      # 5. (Opcional) Verifica que la conexión funcione con Python
+      - name: Test Snowflake connection
         run: |
           python -c "
           import snowflake.connector
@@ -51,9 +59,14 @@ jobs:
           conn.close()
           "
 
-      - name: 📂 Verificar directorio de migraciones
-        run: ls -la migrations || echo "⚠️ Directorio 'migrations' no encontrado"
+      # 6. Verifica que la carpeta 'migrations' exista y muestre su contenido
+      - name: Check migrations folder
+        run: ls -la migrations || echo "⚠️ 'migrations' folder not found"
 
-      - name: 🔹 Ejecutar schemachange
+      # 7. Ejecuta schemachange para aplicar los scripts de migración
+      - name: Run schemachange
         run: |
-          schemachange deploy -c connections.toml -f migrations
+          schemachange deploy \
+            -c connections.toml \
+            -f migrations \
+            --create-change-history-table
