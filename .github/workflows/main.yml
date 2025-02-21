@@ -9,7 +9,6 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -25,7 +24,6 @@ jobs:
 
       - name: Create connections.toml
         run: |
-          # Se crea el archivo de conexión sin espacios extraños
           echo "[connections.snowflake]" > connections.toml
           echo "account = \"aia76005.east-us-2.azure\"" >> connections.toml
           echo "user = \"DUMAR\"" >> connections.toml
@@ -39,7 +37,7 @@ jobs:
 
       - name: Test Snowflake connection
         run: |
-          python -c "
+          python - <<'EOF'
 import snowflake.connector
 conn = snowflake.connector.connect(
     user='DUMAR',
@@ -51,7 +49,7 @@ conn = snowflake.connector.connect(
 )
 print('✅ Conexión exitosa!')
 conn.close()
-          "
+EOF
 
       - name: Check migrations folder
         run: |
