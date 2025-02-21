@@ -54,4 +54,5 @@ jobs:
           echo "GITHUB_WORKSPACE: $GITHUB_WORKSPACE"
           python --version
           echo "Step 2: Running schemachange"
-          schemachange deploy --connections-file-path connections.toml -f $GITHUB_WORKSPACE/migrations -c $SF_DATABASE.$SF_SCHEMA.SCHEMACHANGE.CHANGE_HISTORY --create-change-history-table
+          # Se usa el nombre de la tabla de historial: database.schema.table (3 partes)
+          schemachange deploy --connections-file-path connections.toml -f $GITHUB_WORKSPACE/migrations -c $SF_DATABASE.$SF_SCHEMA.CHANGE_HISTORY --create-change-history-table
