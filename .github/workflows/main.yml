@@ -3,8 +3,8 @@ name: Deploy to Snowflake with schemachange
 on:
   push:
     branches:
-      - main  # Se ejecutará cuando hagas push en la rama main
-  workflow_dispatch:  # Permite ejecutar manualmente desde GitHub
+      - main
+  workflow_dispatch:
 
 jobs:
   deploy:
@@ -33,7 +33,7 @@ jobs:
           echo 'warehouse = "COMPUTE_WH"' >> connections.toml
           echo 'database = "SNOWFLAKE_SANDBOX_DB"' >> connections.toml
           echo 'schema = "PUBLIC"' >> connections.toml
-          cat connections.toml  # Para verificar que se creó correctamente
+          cat connections.toml  # Verificar contenido
 
       - name: 🔹 Probar conexión con Snowflake
         run: |
@@ -53,4 +53,4 @@ jobs:
 
       - name: 🔹 Ejecutar schemachange
         run: |
-          schemachange -c connections.toml -f carpetas_de_migraciones -a aia76005.east-us-2.azure -u DUMAR -p dfVTkMMXXskFH8w
+          schemachange -c connections.toml -f carpetas_de_migraciones deploy
