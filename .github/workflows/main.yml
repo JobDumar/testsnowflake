@@ -22,14 +22,19 @@ jobs:
         run: |
           pip install schemachange
 
+      - name: Create connections.toml with Secrets
+        run: |
+          cat << EOF > connections.toml
+          [connections.snowflake]
+          account = "${{ secrets.SF_ACCOUNT }}"
+          user = "${{ secrets.SF_USERNAME }}"
+          password = "${{ secrets.SF_PASSWORD }}"
+          role = "${{ secrets.SF_ROLE }}"
+          warehouse = "${{ secrets.SF_WAREHOUSE }}"
+          database = "${{ secrets.SF_DATABASE }}"
+          schema = "${{ secrets.SF_SCHEMA }}"
+          EOF
+
       - name: Run schemachange
         run: |
-          schemachange -f migrations \
-            --snowflake-account "${{ secrets.SNOWFLAKE_ACCOUNT }}" \
-            --snowflake-user "${{ secrets.SNOWFLAKE_USER }}" \
-            --snowflake-password "${{ secrets.SNOWFLAKE_PASSWORD }}" \
-            --snowflake-role "${{ secrets.SNOWFLAKE_ROLE }}" \
-            --snowflake-warehouse "${{ secrets.SNOWFLAKE_WAREHOUSE }}" \
-            --snowflake-database "${{ secrets.SNOWFLAKE_DATABASE }}" \
-            --snowflake-schema "${{ secrets.SNOWFLAKE_SCHEMA }}" \
-            --create-change-history-table
+          schemachange -f migrations -c connections.toml --create-change-history-table
