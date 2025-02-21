@@ -1,25 +1,35 @@
-name: Deploy to Snowflake
+name: Deploy Schema Changes to Snowflake
 
 on:
   push:
     branches:
-      - main
+      - main  # O la rama que uses para despliegues
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
 
-      - name: Set up Python
-        uses: actions/setup-python@v3
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Install Python
+        uses: actions/setup-python@v4
         with:
           python-version: '3.8'
 
       - name: Install schemachange
-        run: pip install schemachange
+        run: |
+          pip install schemachange
 
       - name: Run schemachange
         run: |
-          schemachange -f migrations -c connections.toml --create-change-history-table
+          schemachange -f migrations \
+            --snowflake-account "${{ secrets.SNOWFLAKE_ACCOUNT }}" \
+            --snowflake-user "${{ secrets.SNOWFLAKE_USER }}" \
+            --snowflake-password "${{ secrets.SNOWFLAKE_PASSWORD }}" \
+            --snowflake-role "${{ secrets.SNOWFLAKE_ROLE }}" \
+            --snowflake-warehouse "${{ secrets.SNOWFLAKE_WAREHOUSE }}" \
+            --snowflake-database "${{ secrets.SNOWFLAKE_DATABASE }}" \
+            --snowflake-schema "${{ secrets.SNOWFLAKE_SCHEMA }}" \
+            --create-change-history-table
