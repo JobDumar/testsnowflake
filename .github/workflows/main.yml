@@ -1,50 +1,56 @@
-name: Deploy Schema Changes to Snowflake
+name: Deploy to Snowflake with schemachange
 
 on:
   push:
     branches:
-      - main  # O la rama que uses para despliegues
+      - main  # Se ejecutará cuando hagas push en la rama main
+  workflow_dispatch:  # Permite ejecutar manualmente desde GitHub
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Repository
+      - name: 🔹 Checkout del código
         uses: actions/checkout@v4
 
-      - name: Install Python
+      - name: 🔹 Configurar Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.8'
+          python-version: '3.9'
 
-      - name: Install schemachange
-        run: pip install schemachange
-
-      - name: Debug Secret Lengths
+      - name: 🔹 Instalar dependencias
         run: |
-          echo "Verificando longitud de los secretos..."
-          echo "SF_ACCOUNT length: ${#${{ secrets.SF_ACCOUNT }}}"
-          echo "SF_USERNAME length: ${#${{ secrets.SF_USERNAME }}}"
-          echo "SF_PASSWORD length: ${#${{ secrets.SF_PASSWORD }}}"
-          echo "SF_ROLE length: ${#${{ secrets.SF_ROLE }}}"
-          echo "SF_WAREHOUSE length: ${#${{ secrets.SF_WAREHOUSE }}}"
-          echo "SF_DATABASE length: ${#${{ secrets.SF_DATABASE }}}"
-          echo "SF_SCHEMA length: ${#${{ secrets.SF_SCHEMA }}}"
+          pip install schemachange snowflake-connector-python
 
-      - name: Create connections.toml with Secrets
+      - name: 🔹 Crear archivo connections.toml
         run: |
-          echo "Creando connections.toml..."
-          cat << EOF > connections.toml
-          [connections.snowflake]
-          account = "${{ secrets.SF_ACCOUNT }}"
-          user = "${{ secrets.SF_USERNAME }}"
-          password = "${{ secrets.SF_PASSWORD }}"
-          role = "${{ secrets.SF_ROLE }}"
-          warehouse = "${{ secrets.SF_WAREHOUSE }}"
-          database = "${{ secrets.SF_DATABASE }}"
-          schema = "${{ secrets.SF_SCHEMA }}"
-          EOF
+          echo '[connections.snowflake]' > connections.toml
+          echo 'account = "aia76005.east-us-2.azure"' >> connections.toml
+          echo 'user = "DUMAR"' >> connections.toml
+          echo 'password = "dfVTkMMXXskFH8w"' >> connections.toml
+          echo 'role = "ACCOUNTADMIN"' >> connections.toml
+          echo 'warehouse = "COMPUTE_WH"' >> connections.toml
+          echo 'database = "SNOWFLAKE_SANDBOX_DB"' >> connections.toml
+          echo 'schema = "PUBLIC"' >> connections.toml
+          cat connections.toml  # Para verificar que se creó correctamente
 
-      - name: Run schemachange
-        run: schemachange -f migrations -c connections.toml --create-change-history-table
+      - name: 🔹 Probar conexión con Snowflake
+        run: |
+          python -c "
+          import snowflake.connector
+          conn = snowflake.connector.connect(
+              user='DUMAR',
+              password='dfVTkMMXXskFH8w',
+              account='aia76005.east-us-2.azure',
+              warehouse='COMPUTE_WH',
+              database='SNOWFLAKE_SANDBOX_DB',
+              schema='PUBLIC'
+          )
+          print('✅ Conexión exitosa!')
+          conn.close()
+          "
+
+      - name: 🔹 Ejecutar schemachange
+        run: |
+          schemachange -c connections.toml -f carpetas_de_migraciones -a aia76005.east-us-2.azure -u DUMAR -p dfVTkMMXXskFH8w
