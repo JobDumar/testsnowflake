@@ -53,4 +53,5 @@ jobs:
 
       - name: 🔹 Ejecutar schemachange
         run: |
-          schemachange -c connections.toml -f carpetas_de_migraciones deploy
+          schemachange deploy -c connections.toml -f carpetas_de_migraciones
+   
