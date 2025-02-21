@@ -29,16 +29,14 @@ jobs:
       # 4. Crea el archivo connections.toml con credenciales en texto plano
       - name: Create connections.toml
         run: |
-          cat <<EOF > connections.toml
-[connections.snowflake]
-account = "aia76005.east-us-2.azure"
-user = "DUMAR"
-password = "dfVTkMMXXskFH8w"
-role = "ACCOUNTADMIN"
-warehouse = "COMPUTE_WH"
-database = "SNOWFLAKE_SANDBOX_DB"
-schema = "PUBLIC"
-EOF
+          echo "[connections.snowflake]" > connections.toml
+          echo "account = \"aia76005.east-us-2.azure\"" >> connections.toml
+          echo "user = \"DUMAR\"" >> connections.toml
+          echo "password = \"dfVTkMMXXskFH8w\"" >> connections.toml
+          echo "role = \"ACCOUNTADMIN\"" >> connections.toml
+          echo "warehouse = \"COMPUTE_WH\"" >> connections.toml
+          echo "database = \"SNOWFLAKE_SANDBOX_DB\"" >> connections.toml
+          echo "schema = \"PUBLIC\"" >> connections.toml
           echo "=== connections.toml content ==="
           cat connections.toml
 
@@ -61,7 +59,9 @@ EOF
 
       # 6. Verifica que la carpeta 'migrations' exista y muestre su contenido
       - name: Check migrations folder
-        run: ls -la migrations || echo "⚠️ 'migrations' folder not found"
+        run: |
+          echo "=== Listing migrations folder ==="
+          ls -la migrations || echo "⚠️ 'migrations' folder not found"
 
       # 7. Ejecuta schemachange para aplicar los scripts de migración
       - name: Run schemachange
