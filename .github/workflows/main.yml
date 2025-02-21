@@ -51,7 +51,9 @@ jobs:
           conn.close()
           "
 
+      - name: 📂 Verificar directorio de migraciones
+        run: ls -la migrations || echo "⚠️ Directorio 'migrations' no encontrado"
+
       - name: 🔹 Ejecutar schemachange
         run: |
-          schemachange deploy -c connections.toml -f carpetas_de_migraciones
-   
+          schemachange deploy -c connections.toml -f migrations
